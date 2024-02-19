@@ -24,7 +24,7 @@ Installing this package requires WP-CLI v2.5 or greater. Update to the latest st
 Once you've done so, you can install the latest stable version of this package with:
 
 ```bash
-wp package install wpbeacon/checksum-command:@stable
+wp package install wpbeacon/checksum-command
 ```
 
 To install the latest development version of this package, use the following command instead:
