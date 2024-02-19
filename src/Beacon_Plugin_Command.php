@@ -585,10 +585,6 @@ class Beacon_Plugin_Command {
 			&& array_key_exists( 'sha256', $checksums )
 		) {
 			$sha256 = $this->get_sha256( $this->get_absolute_path( $path ) );
-            if ( $path == "wpmudev-updates/changelog.txt" ) {
-                WP_CLI::log( json_encode( $checksums ) );
-                WP_CLI::log( $sha256 );
-            }
 			return in_array( $sha256, (array) $checksums['sha256'], true );
 		}
         
