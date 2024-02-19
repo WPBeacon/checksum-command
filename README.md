@@ -30,7 +30,7 @@ wp package install wpbeacon/checksum-command:@stable
 To install the latest development version of this package, use the following command instead:
 
 ```bash
-wp package install wpbeacon/checksum-command:dev-master
+wp package install wpbeacon/checksum-command:dev-main
 ```
 
 ## Contributing
