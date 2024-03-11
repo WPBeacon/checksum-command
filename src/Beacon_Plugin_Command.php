@@ -35,7 +35,7 @@ class Beacon_Plugin_Command {
 	private $errors = array();
 
 	/**
-	 * Verifies plugin files against WordPress.org, WP Beacon and localized checksums
+	 * Verifies plugin files against WordPress.org, alternative providers and localized checksums
 	 *
 	 * ## OPTIONS
 	 *
@@ -51,6 +51,9 @@ class Beacon_Plugin_Command {
 	 *
 	 * [--version=<version>]
 	 * : Verify checksums against a specific plugin version.
+	 * 
+	 * [--provider=<url>]
+	 * : Optional alternative provider to use. Example: https://wpbeacon.io/checksums/plugins/
 	 *
 	 * [--format=<format>]
 	 * : Render output in a specific format.
@@ -89,6 +92,7 @@ class Beacon_Plugin_Command {
 		$strict      = (bool) Utils\get_flag_value( $assoc_args, 'strict', false );
 		$insecure    = (bool) Utils\get_flag_value( $assoc_args, 'insecure', false );
 		$plugins     = $fetcher->get_many( $all ? $this->get_all_plugin_names() : $args );
+		$provider    = Utils\get_flag_value( $assoc_args, 'provider', '' );
 		$exclude     = Utils\get_flag_value( $assoc_args, 'exclude', '' );
 		$version_arg = isset( $assoc_args['version'] ) ? $assoc_args['version'] : '';
 
@@ -101,8 +105,9 @@ class Beacon_Plugin_Command {
 		$skips = 0;
 
 		foreach ( $plugins as $plugin ) {
-			$version = empty( $version_arg ) ? $this->get_plugin_version( $plugin->file ) : $version_arg;
-            $author  = empty( $this->get_plugin_author( $plugin->file ) ) ? "empty" : $this->get_plugin_author( $plugin->file );
+			$version       = empty( $version_arg ) ? $this->get_plugin_version( $plugin->file ) : $version_arg;
+            $author        = empty( $this->get_plugin_author( $plugin->file ) ) ? "empty" : $this->get_plugin_author( $plugin->file );
+			$checksum_file = "checksums/plugins/{$plugin->name}/{$author}_{$version}.json";
 
 			if ( in_array( $plugin->name, $exclude_list, true ) ) {
 				++$skips;
@@ -121,7 +126,6 @@ class Beacon_Plugin_Command {
 			}
 
 			$wp_org_api = new WpOrgApi( [ 'insecure' => $insecure ] );
-            $beacon_api = new BeaconApi( [ 'insecure' => $insecure ] );
 			$loaded     = false;
 
 			// Attempt loading checksums from WordPress.org
@@ -132,10 +136,13 @@ class Beacon_Plugin_Command {
 				unset($exception);
 			}
 
-			// Attempt loading checksums from WPBeacon.io
-			if ( ! $loaded ) {
+			// Attempt loading checksums from alternative provider
+			if ( ! $loaded && ! empty( $provider ) ) {
+				$beacon_api = new BeaconApi( [ 'insecure' => $insecure ], $provider );
 				try {
                     $checksums = $beacon_api->get_plugin_checksums( $plugin->name, $author, $version );
+					$provider  = trim( $provider, "/" );
+					WP_CLI::log( "Using checksum $provider/$checksum_file" );
 					$loaded    = true;
                 } catch ( Exception $exception ) {
 					unset($exception);
@@ -145,14 +152,13 @@ class Beacon_Plugin_Command {
 
 			// Generate and load local checksums
 			if ( ! $loaded ) {
-				$checksum_file = "checksums/plugins/{$plugin->name}/{$author}_{$version}.json";
 				if ( ! file_exists( $checksum_file ) ) {
 					WP_CLI::runcommand( "beacon plugin generate-checksums $plugin->name --disable-remote-check" );
 
 				}
 				$checksums = json_decode( file_get_contents( $checksum_file ) );
 				$checksums = (array) $checksums->files;
-				WP_CLI::log( "loading data from $checksum_file" );
+				WP_CLI::log( "Using checksum $checksum_file" );
 			}
 
 			//if ( false === $checksums ) {
@@ -761,16 +767,17 @@ class BeaconApi {
 	 *
 	 * @var string
 	 */
-	const PLUGIN_CHECKSUMS_ENDPOINT =  'https://wpbeacon.io/checksums/plugins/';
-
+	private $options = [];
+	private $endpoint = "";
 
     /**
 	 * WpOrgApi constructor.
 	 *
 	 * @param array $options Associative array of options to pass to the API abstraction.
 	 */
-	public function __construct( $options = [] ) {
+	public function __construct( $options = [], $endpoint = "" ) {
 		$this->options = $options;
+		$this->endpoint = $endpoint;
 	}
 
     /**
@@ -784,7 +791,7 @@ class BeaconApi {
 	public function get_plugin_checksums( $plugin, $author, $version ) {
 		$url = sprintf(
 			'%s%s/%s_%s.json',
-			self::PLUGIN_CHECKSUMS_ENDPOINT,
+			$this->endpoint,
 			$plugin,
             $author,
 			$version
