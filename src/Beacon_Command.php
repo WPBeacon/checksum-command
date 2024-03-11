@@ -5,6 +5,4 @@
  * @package wp-cli
  */
 
-class Beacon_Command {
-    
-}
+class Beacon_Command {}

@@ -51,7 +51,7 @@ class Beacon_Plugin_Command {
 	 *
 	 * [--version=<version>]
 	 * : Verify checksums against a specific plugin version.
-	 * 
+	 *
 	 * [--provider=<url>]
 	 * : Optional alternative provider to use. Example: https://wpbeacon.io/checksums/plugins/
 	 *
@@ -82,8 +82,8 @@ class Beacon_Plugin_Command {
 	 *     # Verify the checksums of a single plugin, Akismet in this case
 	 *     $ wp plugin verify-checksums akismet
 	 *     Success: Verified 1 of 1 plugins.
-     * 
-     * @subcommand verify-checksums
+	 *
+	 * @subcommand verify-checksums
 	 */
 	public function verify_checksums( $args, $assoc_args ) {
 
@@ -106,7 +106,7 @@ class Beacon_Plugin_Command {
 
 		foreach ( $plugins as $plugin ) {
 			$version       = empty( $version_arg ) ? $this->get_plugin_version( $plugin->file ) : $version_arg;
-            $author        = empty( $this->get_plugin_author( $plugin->file ) ) ? "empty" : $this->get_plugin_author( $plugin->file );
+			$author        = empty( $this->get_plugin_author( $plugin->file ) ) ? 'empty' : $this->get_plugin_author( $plugin->file );
 			$checksum_file = "checksums/plugins/{$plugin->name}/{$author}_{$version}.json";
 
 			if ( in_array( $plugin->name, $exclude_list, true ) ) {
@@ -133,22 +133,21 @@ class Beacon_Plugin_Command {
 				$checksums = $wp_org_api->get_plugin_checksums( $plugin->name, $version );
 				$loaded    = true;
 			} catch ( Exception $exception ) {
-				unset($exception);
+				unset( $exception );
 			}
 
 			// Attempt loading checksums from alternative provider
 			if ( ! $loaded && ! empty( $provider ) ) {
 				$beacon_api = new BeaconApi( [ 'insecure' => $insecure ], $provider );
 				try {
-                    $checksums = $beacon_api->get_plugin_checksums( $plugin->name, $author, $version );
-					$provider  = trim( $provider, "/" );
+					$checksums = $beacon_api->get_plugin_checksums( $plugin->name, $author, $version );
+					$provider  = trim( $provider, '/' );
 					WP_CLI::log( "Using checksum $provider/$checksum_file" );
-					$loaded    = true;
-                } catch ( Exception $exception ) {
-					unset($exception);
+					$loaded = true;
+				} catch ( Exception $exception ) {
+					unset( $exception );
 				}
-
-			} 
+			}
 
 			// Generate and load local checksums
 			if ( ! $loaded ) {
@@ -161,16 +160,10 @@ class Beacon_Plugin_Command {
 				WP_CLI::log( "Using checksum $checksum_file" );
 			}
 
-			//if ( false === $checksums ) {
-			//	WP_CLI::warning( "Could not retrieve the checksums for version {$version} of plugin {$plugin->name}, skipping." );
-			//	++$skips;
-			//	continue;
-			//}
-
 			$files = $this->get_plugin_files( $plugin->file );
 
 			foreach ( $checksums as $file => $checksum_array ) {
-                $checksums[ $file ] = (array) $checksum_array;
+				$checksums[ $file ] = (array) $checksum_array;
 				if ( ! in_array( $file, $files, true ) ) {
 					$this->add_error( $plugin->name, $file, 'File is missing' );
 				}
@@ -214,8 +207,8 @@ class Beacon_Plugin_Command {
 		);
 	}
 
-     /**
-     * Generates a JSON file containing checksums of plugin files
+	/**
+	 * Generates a JSON file containing checksums of plugin files
 	 *
 	 * ## OPTIONS
 	 *
@@ -224,16 +217,16 @@ class Beacon_Plugin_Command {
 	 *
 	 * [--all]
 	 * : If set, checksums for all local plugins will be generated.
-     * 
-     * [--disable-remote-check]
-	 * : If set, will also generate checksums for plugins already 
-     * on WordPress.org and WP Beacon.
-     * 
-     * [--source-dir]
+	 *
+	 * [--disable-remote-check]
+	 * : If set, will also generate checksums for plugins already
+	 * on WordPress.org and WP Beacon.
+	 *
+	 * [--source-dir]
 	 * : If set, will generate checksums for plugins found is local
-     * directory.
-     * 
-     * [--output-dir]
+	 * directory.
+	 *
+	 * [--output-dir]
 	 * : Defaults to /checksums/plugins/ found in the home directory.
 	 *
 	 * [--force]
@@ -266,204 +259,201 @@ class Beacon_Plugin_Command {
 	 *
 	 * @subcommand generate-checksums
 	 */
-    public function generate_checksums( $args, $assoc_args ) {
+	public function generate_checksums( $args, $assoc_args ) {
 
-        $plugins             = get_plugins();
-        $plugins_to_generate = [];
+		$plugins             = get_plugins();
+		$plugins_to_generate = [];
 
-        $all         = (bool) Utils\get_flag_value( $assoc_args, 'all', false );
-		$strict      = (bool) Utils\get_flag_value( $assoc_args, 'strict', false );
-        $force       = (bool) Utils\get_flag_value( $assoc_args, 'force', false );
-		$insecure    = (bool) Utils\get_flag_value( $assoc_args, 'insecure', false );
-        $disable_remote_check = (bool) Utils\get_flag_value( $assoc_args, 'disable-remote-check', false );
-        $source_dir  = (string) Utils\get_flag_value( $assoc_args, 'source-dir', false );
-        $output_dir  = (string) Utils\get_flag_value( $assoc_args, 'output-dir', false );
-        $source_dir  = rtrim( $source_dir, "/" );
-        $output_dir  = rtrim( $output_dir, "/" );
+		$all                  = (bool) Utils\get_flag_value( $assoc_args, 'all', false );
+		$strict               = (bool) Utils\get_flag_value( $assoc_args, 'strict', false );
+		$force                = (bool) Utils\get_flag_value( $assoc_args, 'force', false );
+		$insecure             = (bool) Utils\get_flag_value( $assoc_args, 'insecure', false );
+		$disable_remote_check = (bool) Utils\get_flag_value( $assoc_args, 'disable-remote-check', false );
+		$source_dir           = (string) Utils\get_flag_value( $assoc_args, 'source-dir', false );
+		$output_dir           = (string) Utils\get_flag_value( $assoc_args, 'output-dir', false );
+		$source_dir           = rtrim( $source_dir, '/' );
+		$output_dir           = rtrim( $output_dir, '/' );
 
-        if ( ! empty( $source_dir ) && ! is_dir( $source_dir ) ) {
-            WP_CLI::error( "Source directory $source_dir not found." );
-        }
+		if ( ! empty( $source_dir ) && ! is_dir( $source_dir ) ) {
+			WP_CLI::error( "Source directory $source_dir not found." );
+		}
 
-        if ( ! empty( $output_dir ) && ! is_dir( $output_dir ) ) {
-            WP_CLI::error( "Output directory $output_dir not found." );
-        }
-        
+		if ( ! empty( $output_dir ) && ! is_dir( $output_dir ) ) {
+			WP_CLI::error( "Output directory $output_dir not found." );
+		}
+
 		if ( empty( $args ) && ! $all ) {
 			WP_CLI::error( 'You need to specify either one or more plugin slugs to generate checksums or use the --all flag to generate all plugin checksums.' );
 		}
 
-        if ( ! empty( $source_dir ) ) {
-            $plugins = $this->get_plugins_from_directory( $source_dir );
-        }
+		if ( ! empty( $source_dir ) ) {
+			$plugins = $this->get_plugins_from_directory( $source_dir );
+		}
 
-        if ( ! empty( $args ) ) {
-            foreach ( $plugins as $file => $details ) {
-                if ( in_array( dirname( $file ), $args ) ) {
-                    continue;
-                }
-                unset( $plugins[ $file ] );
-            }
-        }
+		if ( ! empty( $args ) ) {
+			foreach ( $plugins as $file => $details ) {
+				if ( in_array( dirname( $file ), $args ) ) {
+					continue;
+				}
+				unset( $plugins[ $file ] );
+			}
+		}
 
-        if ( ! $disable_remote_check ) {
-            WP_CLI::log( "Checking WordPress.org for plugin checksums." );
-        }
+		if ( ! $disable_remote_check ) {
+			WP_CLI::log( 'Checking WordPress.org for plugin checksums.' );
+		}
 
-        foreach ( $plugins as $file => $details ) {
+		foreach ( $plugins as $file => $details ) {
 
-            if ( false === strpos( $file, '/' ) ) {
-                $name = str_replace( '.php', '', basename( $file ) );
-            } else {
-                $name = dirname( $file );
-            }
+			if ( false === strpos( $file, '/' ) ) {
+				$name = str_replace( '.php', '', basename( $file ) );
+			} else {
+				$name = dirname( $file );
+			}
 
-            $author  = sanitize_title( $details["Author"] );
-            $version = $details["Version"];
+			$author  = sanitize_title( $details['Author'] );
+			$version = $details['Version'];
 
-            if ( ! $disable_remote_check ) {
+			if ( ! $disable_remote_check ) {
 
-                $arguments = [ 'headers' => [ 'Accept' => 'application/json' ] ];
-                $response  = wp_remote_get( "https://downloads.wordpress.org/plugin-checksums/$name/$version.json", $arguments );
-                if ( wp_remote_retrieve_response_code( $response ) === 200 ) {
-                    continue;
-                }
-                if ( is_wp_error( $response ) ) {
-                    continue;
-                }
+				$arguments = [ 'headers' => [ 'Accept' => 'application/json' ] ];
+				$response  = wp_remote_get( "https://downloads.wordpress.org/plugin-checksums/$name/$version.json", $arguments );
+				if ( wp_remote_retrieve_response_code( $response ) === 200 ) {
+					continue;
+				}
+				if ( is_wp_error( $response ) ) {
+					continue;
+				}
+			}
 
-            }
+			$plugins_to_generate[] = (object) [
+				'name'    => $name,
+				'author'  => empty( $author ) ? 'empty' : $author,
+				'version' => $version,
+			];
 
-            $plugins_to_generate[] = (object) [
-                "name"    => $name,
-                "author"  => empty( $author ) ? "empty" : $author,
-                "version" => $version
-            ];
+		}
 
-        }
+		foreach ( $plugins_to_generate as $plugin ) {
 
-        foreach( $plugins_to_generate as $plugin ) {
+			$json_file = get_home_path() . "checksums/plugins/{$plugin->name}/{$plugin->author}_{$plugin->version}.json";
+			if ( ! empty( $output_dir ) ) {
+				$json_file = "$output_dir/{$plugin->name}/{$plugin->author}_{$plugin->version}.json";
+			}
+			if ( ! $force && file_exists( $json_file ) ) {
+				echo "Skipping $json_file already exists\n";
+				continue;
+			}
+			WP_CLI::log( "Generating $json_file." );
 
-            $json_file = get_home_path() . "checksums/plugins/{$plugin->name}/{$plugin->author}_{$plugin->version}.json";
-            if ( ! empty( $output_dir ) ) {
-                $json_file = "$output_dir/{$plugin->name}/{$plugin->author}_{$plugin->version}.json";
-            }
-            if ( ! $force and file_exists( $json_file ) ) {
-                echo "Skipping $json_file already exists\n";
-                continue;
-            }
-            WP_CLI::log( "Generating $json_file." );
-            
-            $skip_bad_files = [];
-            $checksums      = [];
-            $checksum_types = [
-                'md5'    => 'md5sum',
-                'sha256' => 'sha256sum'
-            ];
+			$skip_bad_files = [];
+			$checksums      = [];
+			$checksum_types = [
+				'md5'    => 'md5sum',
+				'sha256' => 'sha256sum',
+			];
 
-            $path = WP_PLUGIN_DIR . "/$plugin->name";
-            if ( ! empty( $source_dir ) ) {
-                $path = "$source_dir/$plugin->name";
-            }
-            foreach( $checksum_types as $checksum_type => $checksum_command ) {
-                $checksum_output = shell_exec( "cd $path && find . -type f -print0 | sort -z | xargs -0 $checksum_command 2>&1" );
-                $checksum_output = explode( "\n", $checksum_output );
-                foreach ( $checksum_output as $line ) {
-                    if ( empty( $line ) ) {
-                        continue;
-                    }
-                    list( $checksum, $filename ) = preg_split( '!\s+!', $line, 2 );
-            
-                    $filename = trim( preg_replace( '!^./!', '', $filename ) );
-                    $checksum = trim( $checksum );
-            
-                    // See https://meta.trac.wordpress.org/ticket/3335 - Filenames like 'Testing Test' truncated to 'Testing'
-                    if ( preg_match( '!^(\S+)\s+\S!', $filename, $m ) ) {
-                            $skip_bad_files[ $m[1] ] = true;
-                    }
-            
-                    if ( ! isset( $checksums[ $filename ] ) ) {
-                        $checksums[ $filename ] = [
-                            'md5'    => [],
-                            'sha256' => [],
-                        ];
-                    }
-                    $checksums[ $filename ][ $checksum_type ] = $checksum;
-                }
-            }
+			$path = WP_PLUGIN_DIR . "/$plugin->name";
+			if ( ! empty( $source_dir ) ) {
+				$path = "$source_dir/$plugin->name";
+			}
+			foreach ( $checksum_types as $checksum_type => $checksum_command ) {
+				$checksum_output = shell_exec( "cd $path && find . -type f -print0 | sort -z | xargs -0 $checksum_command 2>&1" );
+				$checksum_output = explode( "\n", $checksum_output );
+				foreach ( $checksum_output as $line ) {
+					if ( empty( $line ) ) {
+						continue;
+					}
+					list( $checksum, $filename ) = preg_split( '!\s+!', $line, 2 );
 
-            $data = (object) [
-                "plugin"  => $plugin->name,
-                "version" => $plugin->version,
-                "files"   => $checksums,
-            ];
-            if ( ! file_exists( dirname( $json_file ) ) ) {
-                mkdir( dirname( $json_file ), 0777, true );
-            }
-            ksort( $data->files );
-            if ( $force and file_exists( $json_file ) ) {
-                unlink( $json_file );
-            }
-            file_put_contents( $json_file, json_encode( $data ) );
+					$filename = trim( preg_replace( '!^./!', '', $filename ) );
+					$checksum = trim( $checksum );
 
-        }
-    }
+					// See https://meta.trac.wordpress.org/ticket/3335 - Filenames like 'Testing Test' truncated to 'Testing'
+					if ( preg_match( '!^(\S+)\s+\S!', $filename, $m ) ) {
+							$skip_bad_files[ $m[1] ] = true;
+					}
 
-    private function get_plugins_from_directory( $plugin_root ) {
-        // Files in wp-content/plugins directory.
-        $plugins_dir  = @opendir( $plugin_root );
-        $plugin_files = [];
-        $wp_plugins   = [];
+					if ( ! isset( $checksums[ $filename ] ) ) {
+						$checksums[ $filename ] = [
+							'md5'    => [],
+							'sha256' => [],
+						];
+					}
+					$checksums[ $filename ][ $checksum_type ] = $checksum;
+				}
+			}
 
-        if ( $plugins_dir ) {
-            while ( ( $file = readdir( $plugins_dir ) ) !== false ) {
-                if ( str_starts_with( $file, '.' ) ) {
-                    continue;
-                }
+			$data = (object) [
+				'plugin'  => $plugin->name,
+				'version' => $plugin->version,
+				'files'   => $checksums,
+			];
+			if ( ! file_exists( dirname( $json_file ) ) ) {
+				mkdir( dirname( $json_file ), 0777, true );
+			}
+			ksort( $data->files );
+			if ( $force && file_exists( $json_file ) ) {
+				unlink( $json_file );
+			}
+			file_put_contents( $json_file, json_encode( $data ) );
 
-                if ( is_dir( $plugin_root . '/' . $file ) ) {
-                    $plugins_subdir = @opendir( $plugin_root . '/' . $file );
+		}
+	}
 
-                    if ( $plugins_subdir ) {
-                        while ( ( $subfile = readdir( $plugins_subdir ) ) !== false ) {
-                            if ( str_starts_with( $subfile, '.' ) ) {
-                                continue;
-                            }
+	private function get_plugins_from_directory( $plugin_root ) {
+		// Files in wp-content/plugins directory.
+		$plugins_dir  = @opendir( $plugin_root );
+		$plugin_files = [];
+		$wp_plugins   = [];
 
-                            if ( str_ends_with( $subfile, '.php' ) ) {
-                                $plugin_files[] = "$file/$subfile";
-                            }
-                        }
+		if ( $plugins_dir ) {
+			while ( ( $file = readdir( $plugins_dir ) ) !== false ) {
+				if ( str_starts_with( $file, '.' ) ) {
+					continue;
+				}
 
-                        closedir( $plugins_subdir );
-                    }
-                } else {
-                    if ( str_ends_with( $file, '.php' ) ) {
-                        $plugin_files[] = $file;
-                    }
-                }
-            }
+				if ( is_dir( $plugin_root . '/' . $file ) ) {
+					$plugins_subdir = @opendir( $plugin_root . '/' . $file );
 
-            closedir( $plugins_dir );
-        }
-        foreach ( $plugin_files as $plugin_file ) {
-            if ( ! is_readable( "$plugin_root/$plugin_file" ) ) {
-                continue;
-            }
-    
-            // Do not apply markup/translate as it will be cached.
-            $plugin_data = get_plugin_data( "$plugin_root/$plugin_file", false, false );
-    
-            if ( empty( $plugin_data['Name'] ) ) {
-                continue;
-            }
-    
-            $wp_plugins[ plugin_basename( $plugin_file ) ] = $plugin_data;
-        }
-    
-        uasort( $wp_plugins, '_sort_uname_callback' );
-        return $wp_plugins;
-    }
+					if ( $plugins_subdir ) {
+						while ( ( $subfile = readdir( $plugins_subdir ) ) !== false ) {
+							if ( str_starts_with( $subfile, '.' ) ) {
+								continue;
+							}
+
+							if ( str_ends_with( $subfile, '.php' ) ) {
+								$plugin_files[] = "$file/$subfile";
+							}
+						}
+
+						closedir( $plugins_subdir );
+					}
+				} elseif ( str_ends_with( $file, '.php' ) ) {
+						$plugin_files[] = $file;
+				}
+			}
+
+			closedir( $plugins_dir );
+		}
+		foreach ( $plugin_files as $plugin_file ) {
+			if ( ! is_readable( "$plugin_root/$plugin_file" ) ) {
+				continue;
+			}
+
+			// Do not apply markup/translate as it will be cached.
+			$plugin_data = get_plugin_data( "$plugin_root/$plugin_file", false, false );
+
+			if ( empty( $plugin_data['Name'] ) ) {
+				continue;
+			}
+
+			$wp_plugins[ plugin_basename( $plugin_file ) ] = $plugin_data;
+		}
+
+		uasort( $wp_plugins, '_sort_uname_callback' );
+		return $wp_plugins;
+	}
 
 	private function verify_hello_dolly_from_core( $assoc_args ) {
 		$file       = 'hello.php';
@@ -518,8 +508,8 @@ class Beacon_Plugin_Command {
 		if ( ! array_key_exists( $path, $this->plugins_data ) ) {
 			return false;
 		}
-        
-        $title = sanitize_title($this->plugins_data[ $path ]['Author']);
+
+		$title = sanitize_title( $this->plugins_data[ $path ]['Author'] );
 		return $title;
 	}
 
@@ -593,7 +583,6 @@ class Beacon_Plugin_Command {
 			$sha256 = $this->get_sha256( $this->get_absolute_path( $path ) );
 			return in_array( $sha256, (array) $checksums['sha256'], true );
 		}
-        
 
 		if ( ! array_key_exists( 'md5', $checksums ) ) {
 			return 'No matching checksum algorithm found';
@@ -678,7 +667,7 @@ class Beacon_Plugin_Command {
 		return in_array( strtolower( $file ), $this->get_soft_change_files(), true );
 	}
 
-    /**
+	/**
 	 * Normalizes directory separators to slashes.
 	 *
 	 * @param string $path Path to convert.
@@ -757,30 +746,29 @@ class Beacon_Plugin_Command {
 	protected function filter_file( $filepath ) {
 		return true;
 	}
-
 }
 
 class BeaconApi {
 
-    /**
+	/**
 	 * Plugin checksums endpoint.
 	 *
 	 * @var string
 	 */
-	private $options = [];
-	private $endpoint = "";
+	private $options  = [];
+	private $endpoint = '';
 
-    /**
+	/**
 	 * WpOrgApi constructor.
 	 *
 	 * @param array $options Associative array of options to pass to the API abstraction.
 	 */
-	public function __construct( $options = [], $endpoint = "" ) {
-		$this->options = $options;
+	public function __construct( $options = [], $endpoint = '' ) {
+		$this->options  = $options;
 		$this->endpoint = $endpoint;
 	}
 
-    /**
+	/**
 	 * Gets the checksums for the given version of plugin.
 	 *
 	 * @param string $plugin  Plugin slug to query.
@@ -793,7 +781,7 @@ class BeaconApi {
 			'%s%s/%s_%s.json',
 			$this->endpoint,
 			$plugin,
-            $author,
+			$author,
 			$version
 		);
 
@@ -810,7 +798,7 @@ class BeaconApi {
 		return $response['files'];
 	}
 
-    /**
+	/**
 	 * Execute a remote GET request.
 	 *
 	 * @param string $url     URL to execute the GET request on.
@@ -842,7 +830,7 @@ class BeaconApi {
 		return $data;
 	}
 
-    /**
+	/**
 	 * Execute a remote GET request.
 	 *
 	 * @param string $url     URL to execute the GET request on.
@@ -874,5 +862,4 @@ class BeaconApi {
 
 		return trim( $response->body );
 	}
-
 }
