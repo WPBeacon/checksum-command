@@ -3,15 +3,19 @@ WPBeacon/checksum-command
 
 **Checksums for the WordPress community.**
 
-Refer to [https://wpbeacon.io](https://wpbeacon.io).
+Refer to [https://wpbeacon.io](https://wpbeacon.io) for more info.
 
-Quick links: [Using](#using) | [Installing](#installing) | [Contributing](#contributing) | [Support](#support)
+Quick links: [Using](#using) | [Installing](#installing) | [Contributing](#contributing)
 
 ## Using
+
+ Generates a JSON file containing checksums of plugin files
 
 ```bash
 wp beacon plugin generate-checksums
 ```
+
+Verifies plugin files against WordPress.org, alternative providers and localized checksums
 
 ```bash
 wp beacon plugin verify-checksums
@@ -25,12 +29,6 @@ Once you've done so, you can install the latest stable version of this package w
 
 ```bash
 wp package install wpbeacon/checksum-command
-```
-
-To install the latest development version of this package, use the following command instead:
-
-```bash
-wp package install wpbeacon/checksum-command:dev-main
 ```
 
 ## Contributing
@@ -54,10 +52,3 @@ Once you’ve done a bit of searching and discovered there isn’t an open or fi
 Want to contribute a new feature? Please first [open a new issue](https://github.com/wpbeacon/checksum-command/issues/new) to discuss whether the feature is a good fit for the project.
 
 Once you've decided to commit the time to seeing your pull request through, [please follow our guidelines for creating a pull request](https://make.wordpress.org/cli/handbook/pull-requests/) to make sure it's a pleasant experience. See "[Setting up](https://make.wordpress.org/cli/handbook/pull-requests/#setting-up)" for details specific to working on this package locally.
-
-## Support
-
-GitHub issues aren't for general support questions, but there are other venues you can try: https://wp-cli.org/#support
-
-
-*This README.md is generated dynamically from the project's codebase using `wp scaffold package-readme` ([doc](https://github.com/wp-cli/scaffold-package-command#wp-scaffold-package-readme)). To suggest changes, please submit a pull request against the corresponding part of the codebase.*
