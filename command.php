@@ -4,6 +4,7 @@ if ( ! class_exists( 'WP_CLI' ) ) {
 	return;
 }
 
+require_once 'src/Beacon_Api.php';
 require_once 'src/Beacon_Command.php';
 require_once 'src/Beacon_Plugin_Command.php';
 
